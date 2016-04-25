@@ -5,7 +5,7 @@ module Sidetiq
     MAJOR = 0
 
     # Public: Sidetiq minor version number.
-    MINOR = 7
+    MINOR = 8
 
     # Public: Sidetiq patch level.
     PATCH = 0
