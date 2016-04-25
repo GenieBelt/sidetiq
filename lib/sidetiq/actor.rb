@@ -1,8 +1,9 @@
+require 'concurrent'
 module Sidetiq
   module Actor
     def self.included(base)
-      base.__send__(:include, Celluloid)
-      base.finalizer :sidetiq_finalizer
+      #base.__send__(:include, Celluloid)
+      #base.finalizer :sidetiq_finalizer
     end
 
     def initialize(*args, &block)
@@ -19,6 +20,15 @@ module Sidetiq
     end
 
     private
+
+    def after(time)
+      task = Concurrent::ScheduledTask.new(time) do
+        yield
+      end
+      task.add_observer(@supervisor) if @supervisor
+      task.execute
+      task
+    end
 
     def sidetiq_finalizer
       log_call "shutting down ..."

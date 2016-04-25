@@ -1,36 +1,25 @@
 module Sidetiq
-  class Supervisor < Celluloid::Supervision::Container
-    supervise type: Sidetiq::Actor::Clock, as: :sidetiq_clock
-
-    if Sidekiq.server?
-      if handler_pool_size = Sidetiq.config.handler_pool_size
-        pool Sidetiq::Actor::Handler,
-             as: :sidetiq_handler,
-             size: handler_pool_size
-      else
-        # Use Celluloid's CPU-based default.
-        pool Sidetiq::Actor::Handler,
-             as: :sidetiq_handler
-      end
-    end
+  class Supervisor
 
     class << self
       include Logging
 
       def clock
-        run! if Celluloid::Actor[:sidetiq_clock].nil?
-        Celluloid::Actor[:sidetiq_clock]
+        run! unless @clock
+        @clock
       end
 
       def handler
-        run! if Celluloid::Actor[:sidetiq_handler].nil?
-        Celluloid::Actor[:sidetiq_handler]
+        run! if @handler.nil?
+        @handler
       end
 
       def run!
         motd
         info "Sidetiq::Supervisor start"
-        super
+        @clock = Sidetiq::Actor::Clock.new
+        @handler = Sidetiq::Actor::Handler.new
+        #super
       end
 
       def run

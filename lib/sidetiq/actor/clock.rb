@@ -1,11 +1,24 @@
 module Sidetiq
   module Actor
     class Clock < Sidetiq::Clock
+      class Supervisor
+        def initialize(clock)
+          @clock = clock
+        end
+
+        def update(time, value, reason)
+          if reason
+            @clock.send :loop!
+          end
+        end
+      end
+
       include Sidetiq::Actor
       include Sidekiq::ExceptionHandler
 
       def initialize(*args, &block)
         super
+        @supervisor = Supervisor.new(self)
 
         if Sidekiq.server?
           after(0) do
